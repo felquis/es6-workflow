@@ -1,22 +1,22 @@
 import Cycle from '@cycle/core';
-import {makeDOMDriver, h} from '@cycle/dom';
+import {h, makeDOMDriver} from '@cycle/dom';
 
-function main(drivers) {
-  return {
-    DOM: drivers.DOM.get('input', 'click')
-      .map(ev => ev.target.checked)
+function main(responses) {
+  const requests = {
+    DOM: responses.DOM.get('input', 'change')
+      .map(event => event.target.checked)
       .startWith(false)
       .map(toggled =>
-        h('div', [
-          h('input', {type: 'checkbox', checked: toggled}), 'Toggle me',
-          h('p', toggled ? 'ON' : 'off')
+        h('label', [
+          h('input', {type: 'checkbox'}), 'Toggle me',
+          h('p', toggled ? 'ON' : 'OFF')
         ])
       )
   };
+
+  return requests;
 }
 
-const drivers = {
+Cycle.run(main, {
   DOM: makeDOMDriver('#app')
-};
-
-Cycle.run(main, drivers);
+});
