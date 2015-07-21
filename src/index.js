@@ -2,21 +2,37 @@ import Cycle from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
 
 function main({DOM}) {
-  const action$ = Cycle.Rx.Observable.merge(
-    DOM.get('.decrement', 'click').map(() => -1),
-    DOM.get('.increment', 'click').map(() => +1)
+  const changeWeight$ = DOM.get('#weight', 'input')
+    .map(ev => ev.target.value);
+
+  const changeHeight$ = DOM.get('#height', 'input')
+    .map(ev => ev.target.value);
+
+  const state$ = Cycle.Rx.Observable.combineLatest(
+    changeWeight$.startWith(70),
+    changeHeight$.startWith(170),
+    (weight, height) => {
+      const heightMeters = height * 0.01;
+      const bmi = Math.round(weight / (heightMeters * heightMeters));
+
+      return {weight, height, bmi};
+    }
   );
 
-  const count$ = action$.startWith(0).scan((x, y) => x + y);
-
   return {
-    DOM: count$.map(count =>
+    DOM: state$.map(({weight, height, bmi}) =>
+      h('div', [
         h('div', [
-          h('button.decrement', 'Decrement'),
-          h('button.increment', 'Increment'),
-          h('p', 'Counter: ' + count)
-        ])
-      )
+          'Weight ' + weight + 'kg',
+          h('input#weight', {type: 'range', min: 40, max: 140, value: weight})
+        ]),
+        h('div', [
+          'Height ' + height + 'cm',
+          h('input#height', {type: 'range', min: 140, max: 210, value: height})
+        ]),
+        h('h2', 'BMI is ' + bmi)
+      ])
+    )
   };
 }
 
