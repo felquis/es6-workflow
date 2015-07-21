@@ -1,7 +1,22 @@
-import React from 'react';
-import App from './app/App';
+import Cycle from '@cycle/core';
+import {makeDOMDriver, h} from '@cycle/dom';
 
-import './utils/reset.css';
-import './utils/base.css';
+function main(drivers) {
+  return {
+    DOM: drivers.DOM.get('input', 'click')
+      .map(ev => ev.target.checked)
+      .startWith(false)
+      .map(toggled =>
+        h('div', [
+          h('input', {type: 'checkbox', checked: toggled}), 'Toggle me',
+          h('p', toggled ? 'ON' : 'off')
+        ])
+      )
+  };
+}
 
-React.render(<App />, document.body);
+const drivers = {
+  DOM: makeDOMDriver('#app')
+};
+
+Cycle.run(main, drivers);
